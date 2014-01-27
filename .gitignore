@@ -1,4 +1,9 @@
-#  Object Files
+# Temporary Files
+*.TMP
+*.BAT
+*.AWS
+
+# Object Files
 *.OBJ
 
 # List Files
@@ -9,3 +14,5 @@
 
 # Executable files
 *.EXE
+*.HEX
+*.EEP
