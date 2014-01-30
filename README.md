@@ -1,14 +1,16 @@
 avrasm-RTOS
 ===========
 
-*Framework "Диспетчер задач RTOS"* - псевдо кооперативная ОС, созданная и поддерживаемая "Сообществом EasyElectronics.ru" (с) http://we.EasyElectronics.ru/
+**Framework "Диспетчер задач RTOS"** - псевдо кооперативная ОС, 
+созданная и поддерживаемая "Сообществом EasyElectronics.ru" 
+(с) http://we.EasyElectronics.ru/
 
 
 В дистрибутиве присутствует: 
 Шаблон нового проекта, 
 для разработки программной прошивки (firmware) на языке ассемблер, 
 в среде "AVR Studio 4", 
-для микроконтроллеров Atmel AVR,
+для микроконтроллеров Atmel AVR, 
 с реализацией ядра микропрограммы на "Диспетчере задач RTOS".
 
 
@@ -49,6 +51,8 @@ avrasm-RTOS
 
 Курс от DI HALT (лучшее):
 	http://easyelectronics.ru/tag/rtos
+
+Заметка об этом дистрибутиве...
 
 Статьи в Блоге Сообщества:
 	http://we.easyelectronics.ru/blog/os-rtos/
