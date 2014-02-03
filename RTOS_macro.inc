@@ -69,6 +69,7 @@
 
 	; Добавить Задачу в очередь RTOS_TaskQueue, послать на выполнение
 	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
+	; Пример вызова:  PLAN_TASK tasknumber
 	.MACRO 	PLAN_TASK
 		.if @0==$00
 		.ERROR "Error: system <Task_Idle> is forbidden to use!"
@@ -82,6 +83,7 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Добавить Задачу в очередь RTOS_TaskQueue, послать на выполнение	(БЕЗОПАСНАЯ ВЕРСИЯ)
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
+	; Пример вызова:  SAFE_PLAN_TASK tasknumber
 	.MACRO 	SAFE_PLAN_TASK
 		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
 		PLAN_TASK	@0
@@ -101,6 +103,7 @@
 
 	; Установить (добавить или обновить) Таймер в пуле RTOS_TimersPool, для отложенного запуска Задачи
 	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
+	; Пример вызова:  PLAN_TASK_TIMED tasknumber,delay
 	.MACRO	PLAN_TASK_TIMED
 		.if @0==$00
 		.ERROR "Error: system <Task_Idle> is forbidden to use!"
@@ -119,6 +122,7 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Установить (добавить или обновить) Таймер в пуле RTOS_TimersPool, для отложенного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
+	; Пример вызова:  SAFE_PLAN_TASK_TIMED tasknumber,delay
 	.MACRO	SAFE_PLAN_TASK_TIMED
 		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
 		PUSH	TimeDelayLow
@@ -135,6 +139,7 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Убрать (удалить) Таймер из пула RTOS_TimersPool, для отмены отложенного запуска Задачи
 	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
+	; Пример вызова:  REMOVE_TASK_TIMED tasknumber
 	.MACRO 	REMOVE_TASK_TIMED
 		.if @0==$00
 		.ERROR "Error: system <Task_Idle> is forbidden to use!"
@@ -149,6 +154,7 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Убрать (удалить) Таймер из пула RTOS_TimersPool, для отмены отложенного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
+	; Пример вызова:  SAFE_REMOVE_TASK_TIMED tasknumber
 	.MACRO 	SAFE_REMOVE_TASK_TIMED
 		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
 		REMOVE_TASK_TIMED	@0
@@ -165,7 +171,7 @@
 ; Диспетчеризация Задач по состоянию бита в Управляющем Регистре/Порте или в ячейке SRAM (Флаговая автоматизация: запуск, если бит в байте установлен?  если бит в байте снят?)
 
 
-	; TODO: PLAN_TASK_WAITER, PLAN_TASK_WAITER_ONBITSET, PLAN_TASK_WAITER_ONBITCLR
+	; TODO: PLAN_TASK_WAITER, [PLAN_TASK_WAITER_ONBITSET, PLAN_TASK_WAITER_ONBITCLR]
 	; TODO: REMOVE_TASK_WAITER
 
 

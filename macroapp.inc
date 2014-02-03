@@ -11,16 +11,15 @@
 
 ; Псевдонимы для номеров-индексов Задач (используются как параметры макросов PLAN_TASK_*):
 ; Указание: определяйте их как вам угодно - они используются только для удобства программирования прикладного кода, и не используются кодом ядра RTOS...
-.equ	TS_Idle		= 0		; 
 .equ	TS_Send		= 1		; 
 .equ	TS_Led_Blink	= 2		; 
 .equ	TS_TextTime	= 3		; 
 .equ	TS_Task4	= 4		; 
-.equ	TS_Test5	= 5		; 
-.equ	TS_Test6	= 6		; 
-.equ	TS_Test7	= 7		; 
-.equ	TS_Test8	= 8		; 
-.equ	TS_Test9	= 9		; 
+.equ	TS_Task5	= 5		; 
+.equ	TS_Task6	= 6		; 
+.equ	TS_Task7	= 7		; 
+.equ	TS_Task8	= 8		; 
+.equ	TS_Task9	= 9		; 
 
 ;***** END "RTOS Tasks" section
 
