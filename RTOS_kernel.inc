@@ -1,4 +1,4 @@
-.MESSAGE "<-- RTOS ver.1.9 alpha -->"
+.MESSAGE "<-- RTOS ver.1.9.1 alpha -->"
 ;=== BEGIN "RTOS-kernel.inc" ===============================================
 
 ; Ядро RTOS
@@ -319,7 +319,7 @@ RTOS_METHOD_ClearTimers:
 ;.def	TimeDelayHigh	= (см.выше)	; (входной, не изменяется)	Время Задержки, в милисекундах (ст.байт)
 
 ; Памятка: в режиме без оптимизации RTOS_OPTIMIZE_FOR_SMALL_MEMORY: кроме параметровых, больше регистров не портит - поскольку защищает используемые регистры Стеком.
-; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена - использует/портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4, TEMP5, ZH:ZL.
+; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена - использует/портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4, ZH:ZL.
 ; Памятка: SREG сохраняется всегда.
 
 ;----- Code
@@ -332,21 +332,19 @@ RTOS_METHOD_AddTimer:
 		PUSH	temp2
 		PUSH	temp3
 		PUSH	temp4
-		PUSH	temp5
 		PUSH	ZL
 		PUSH	ZH
 	.endif
 
 		;=== начало критической секции			; (примечание: чтений+запись разделяемой памяти - должны быть в единой транзакции!)
-		INR	temp3,	SREG				; Save global interrupt flag
+		INR	temp2,	SREG				; Save global interrupt flag
 		CLI						; запрещаем прерывания
 
 		; Цикл: ищем существующий Таймер (для апдейта), а заодно, ищем пустую ячейку (для нового)
 		LDI	ZL,	Low (RTOS_TimersPool)		; Загрузить адрес начала "пула таймеров" -> в регистр Z
 		LDI	ZH,	High(RTOS_TimersPool)
-		LDI	temp4,	0				; Установить признак "ещё не нашёл" указатель на пустую ячейку в пуле, для нового таймера	(temp4=temp5=0)
-		LDI	temp5,	0
-		LDI	temp2,	RTOS_TimersPoolSize		; переменная цикла (инициализация)
+		LDI	temp3,	0				; Установить признак "ещё не нашёл" указатель на пустую ячейку в пуле, для нового таймера	(temp3=temp4=0)
+		LDI	temp4,	0
 	Loop__RTOS_METHOD_AddTimer:
 		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного таймера
 
@@ -355,19 +353,21 @@ RTOS_METHOD_AddTimer:
 
 		CPI	temp1,	$00				; проверка: ячейка пустая?
 		BRNE	NotEmpty__RTOS_METHOD_AddTask
-		MOV	temp4,	ZL				; если нашёл пустую ячейку - запоминаем её адрес, на будущее...
-		MOV	temp5,	ZH	
+		MOV	temp3,	ZL				; если нашёл пустую ячейку - запоминаем её адрес, на будущее...
+		MOV	temp4,	ZH	
 	NotEmpty__RTOS_METHOD_AddTask:
 
-		SUBI	ZL,	Low(-3)				; Переходим к следующему таймеру:
-		SBCI	ZH,	High(-3)			; 	адрес Z+=2
-		DEC	temp2					; 	переменная цикла (декрементация)
+		SUBI	ZL,	Low (-3)			; Переходим к следующему таймеру:
+		SBCI	ZH,	High(-3)			; 	адрес Z+=3
+		CPI	ZL,	Low (RTOS_TimersPool + RTOS_TimersPoolSize*3)	; условие цикла:
+		BRNE	Loop__RTOS_METHOD_AddTimer				; 	ПОКА адрес в Z не дойдёт до конца данных...
+		CPI	ZH,	High(RTOS_TimersPool + RTOS_TimersPoolSize*3)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
 		BRNE	Loop__RTOS_METHOD_AddTimer
-		; (состояние: существующий Таймер не найден - нужно добавить новый...)
 
-		MOV	ZL,	temp4				; переводим указатель Z на последнюю пустую ячейку, найденную ранее	(примечание: получается, что пул будет заполняться с конца, но это не важно)
-		MOV	ZH,	temp5
-		OR	temp4,	temp5				; проверить статус: если "не нашёл" указатель на пустую ячейку в пуле?	(temp4==0 and temp5==0 ?)
+		; (состояние: существующий Таймер не найден - нужно добавить новый...)
+		MOV	ZL,	temp3				; переводим указатель Z на последнюю пустую ячейку, найденную ранее	(примечание: получается, что пул будет заполняться с конца, но это не важно)
+		MOV	ZH,	temp4
+		OR	temp3,	temp4				; проверить статус: если "не нашёл" указатель на пустую ячейку в пуле?	(temp3==0 and temp4==0 ?)
 		BRNE	FillNew__RTOS_METHOD_AddTimer		; если таки нашёл - перейти к заполнению нового таймера...
 
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
@@ -385,13 +385,12 @@ RTOS_METHOD_AddTimer:
 		STD	Z+2,	TimeDelayHigh
 
 	End__RTOS_METHOD_AddTimer:
-		OUTR	SREG,	temp3				; Restore global interrupt flag
+		OUTR	SREG,	temp2				; Restore global interrupt flag
 		;=== конец критической секции
 
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 		POP	ZH
 		POP	ZL
-		POP	temp5
 		POP	temp4
 		POP	temp3
 		POP	temp2

@@ -1,6 +1,6 @@
 .IFNDEF	_MACROBASELIB__INCLUDED_
 .EQU	_MACROBASELIB__INCLUDED_ = 1
-.MESSAGE "Note: <macrobaselib.inc> (ver.1.0 beta) have included, only once!" 
+.MESSAGE "Note: <macrobaselib.inc> (ver.1.0.1 beta) have included, only once!" 
 ;=== BEGIN "macrobaselib.inc" ==============================================
 
 ; Библиотека базовых Макроопределений, 
@@ -66,16 +66,16 @@
 
 ; Очистка памяти
 	.MACRO	RAMFLUSH
-		LDI	ZL, Low(SRAM_START)	; Адрес начала ОЗУ в индекс
+		LDI	ZL, Low (SRAM_START)	; Адрес начала ОЗУ в индекс
 		LDI	ZH, High(SRAM_START)
 		CLR	temp			; Очищаем R16
 
 		LOOP__RAMFLUSH:
 		ST	Z+, temp		; Сохраняем 0 в ячейку памяти
-		CPI	ZH, High(RAMEND+1)	; Достигли конца оперативки?
+		CPI	ZL, Low (RAMEND+1)	; Достигли конца оперативки?
 		BRNE	LOOP__RAMFLUSH		; Нет? Крутимся дальше!
 
-		CPI	ZL, Low(RAMEND+1)	; А младший байт достиг конца?
+		CPI	ZH, High(RAMEND+1)	; А старший байт достиг конца?
 		BRNE	LOOP__RAMFLUSH
 	.ENDM
 
