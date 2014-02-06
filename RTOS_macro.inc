@@ -18,12 +18,12 @@
 ; Директивами условной компиляции можно отключать отдельные возможности RTOS, уменьшая размер ядра (оптимизация под простые задачи и слабые МК):
 
 .EQU	RTOS_FEATURE_PLANTASK = 1		; поддержка Базовой диспетчеризации задач	(последовательный запуск, в порядке очереди)
-.EQU	RTOS_FEATURE_PLANTASKTIMED = 1		; поддержка Диспетчеризации Задач по Таймеру	(безусловно отложенный запуск на <X> миллисекунд)
-;.EQU	RTOS_FEATURE_PLANTASKWAITER = 1		; поддержка Флаговой автоматизации		(диспетчеризация Задач по состоянию бита в памяти РОН, Управляющем Регистре/Порте, или в ячейке SRAM:  запуск задачи, если/как-только бит в байте установлен?  или если/как-только бит в байте снят?)
+.EQU	RTOS_FEATURE_PLANTIMER = 1		; поддержка Диспетчеризации Задач по Таймеру	(безусловно отложенный запуск на <X> миллисекунд)
+.EQU	RTOS_FEATURE_PLANWAITER = 1		; поддержка Флаговой автоматизации		(диспетчеризация Задач по состоянию бита в памяти РОН, Управляющем Регистре/Порте, или в ячейке SRAM:  запуск задачи, если/как-только бит в байте установлен?  или если/как-только бит в байте снят?)
 
-.EQU	RTOS_OPTIMIZE_FOR_SMALL_MEMORY = 1	; используйте это только для самых младших МК!	(отключить в системных методах RTOS защиту регистров стеком, отключить некритичные проверки, выкинуть второстепенные методы из ядра, отключить всё что только можно - чтобы минимизировать объём кода RTOS, и главное, минимизировать используемый/требуемый объём ОЗУ/стека)
+;.EQU	RTOS_OPTIMIZE_FOR_SMALL_MEMORY = 1	; используйте это только для самых младших МК!	(отключить в системных методах RTOS защиту регистров стеком, отключить некритичные проверки, выкинуть второстепенные методы из ядра, отключить всё что только можно - чтобы минимизировать объём кода RTOS, и главное, минимизировать используемый/требуемый объём ОЗУ/стека)
 						; Итого, только для работы RTOS (в режиме со включенной оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY) - в стеке требуется гарантированно оставить 10 байт (для RTOS)!
-						; Напомню: Также, требуется выделить SRAM под "очередь Задач", пулы Таймеров и выжидающих.
+						; Напомню: Также, требуется выделить SRAM под "очередь Задач", пулы Таймеров и Выжидателей.
 						; Оставшееся ОЗУ - можно использовать для прикладных данных... И если, в прикладном коде, вы используете вызовы Подпрограмм (CALL Subroutine) - обязательно просчитайте достаточную глубину Стека (для адресов возврата, как минимум)!
 						; Например: на МК ATtiny10 (при 32 байтах SRAM), можно использовать RTOS с одним Таймером (-3байта) и одним Флаговым Автоматом (-3байта), и очередь глубиной 4шт. Задачи (-4байта); ещё -10 байт на Стек RTOS; остаётся 12 байт SRAM на прикладную логику (10 на данные + 2 про запас). Profit!
 
@@ -47,11 +47,14 @@
 
 .def	TaskCode		= R25	; Номер-индекс Задачи в таблице RTOS_TaskProcs
 
-.def	TimeDelayLow		= R23	; Время Задержки, в милисекундах (мл.байт)	/используется для настройки Таймера/
-.def	TimeDelayHigh		= R24	; Время Задержки, в милисекундах (ст.байт)	/используется для настройки Таймера/
+.def	MethodParameter2	= R24	; 2-ой байт элемента пула (описание формата см. в RTOS_data.inc)
+.def	MethodParameter3	= R23	; 3-ий байт элемента пула (описание формата см. в RTOS_data.inc)
 
-.def	WaiterTemplateLow	= R23	; 2-ой байт элемента пула Выжидающих (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
-.def	WaiterTemplateHigh	= R24	; 3-ий байт элемента пула Выжидающих (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
+.def	TimeDelayLow		= R24	; Время Задержки, в милисекундах (мл.байт)	/используется для настройки Таймера/
+.def	TimeDelayHigh		= R23	; Время Задержки, в милисекундах (ст.байт)	/используется для настройки Таймера/
+
+.def	WaiterTemplateLow	= R24	; 2-ой байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
+.def	WaiterTemplateHigh	= R23	; 3-ий байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
 
 .def	ErrorCode		= R24	; Код системной ошибки	/передаётся в RTOS_METHOD_ErrorHandler/
 
@@ -76,7 +79,7 @@
 	; Пример вызова:  PLAN_TASK tasknumber
 	.MACRO 	PLAN_TASK
 		.if @0==$00
-		.ERROR "Error: system <Task_Idle> is forbidden to use!"
+		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
 		LDI	TaskCode,	@0		; Заполняем параметры
 		RCALL	RTOS_METHOD_AddTask		; Вызываем системный метод
@@ -99,7 +102,7 @@
 
 .endif	//RTOS_FEATURE_PLANTASK
 
-.ifdef	RTOS_FEATURE_PLANTASKTIMED
+.ifdef	RTOS_FEATURE_PLANTIMER
 ;---------------------------------------------------------------------------
 ; Диспетчеризация Задач по Таймеру (безусловно отложенный запуск на <X> миллисекунд)
 
@@ -107,13 +110,13 @@
 
 	; Установить (добавить или обновить) Таймер в пуле RTOS_TimersPool, для отложенного запуска Задачи
 	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
-	; Пример вызова:  PLAN_TASK_TIMED tasknumber,delay
-	.MACRO	PLAN_TASK_TIMED
+	; Пример вызова:  PLAN_TIMER tasknumber,delay
+	.MACRO	PLAN_TIMER
 		.if @0==$00
-		.ERROR "Error: system <Task_Idle> is forbidden to use!"
+		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
 		.if @1==0
-		.ERROR "Error: 0ms time delay is forbidden for <RTOS_METHOD_AddTimer> method!"
+		.ERROR "0ms time delay is forbidden for <RTOS_METHOD_AddTimer> method!"
 		.endif
 		LDI	TaskCode,	@0		; Заполняем параметры
 		LDI	TimeDelayLow,	Low(@1)
@@ -126,12 +129,12 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Установить (добавить или обновить) Таймер в пуле RTOS_TimersPool, для отложенного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
-	; Пример вызова:  SAFE_PLAN_TASK_TIMED tasknumber,delay
-	.MACRO	SAFE_PLAN_TASK_TIMED
+	; Пример вызова:  SAFE_PLAN_TIMER tasknumber,delay
+	.MACRO	SAFE_PLAN_TIMER
 		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
 		PUSH	TimeDelayLow
 		PUSH	TimeDelayHigh
-		PLAN_TASK_TIMED	@0,@1
+		PLAN_TIMER	@0,@1
 		POP	TimeDelayHigh
 		POP	TimeDelayLow
 		POP	TaskCode
@@ -143,10 +146,10 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Убрать (удалить) Таймер из пула RTOS_TimersPool, для отмены отложенного запуска Задачи
 	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
-	; Пример вызова:  REMOVE_TASK_TIMED tasknumber
-	.MACRO 	REMOVE_TASK_TIMED
+	; Пример вызова:  REMOVE_TIMER tasknumber
+	.MACRO 	REMOVE_TIMER
 		.if @0==$00
-		.ERROR "Error: system <Task_Idle> is forbidden to use!"
+		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
 		LDI	TaskCode,	@0		; Заполняем параметры
 		RCALL	RTOS_METHOD_RemoveTimer		; Вызываем системный метод
@@ -158,28 +161,94 @@
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 	; Убрать (удалить) Таймер из пула RTOS_TimersPool, для отмены отложенного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
-	; Пример вызова:  SAFE_REMOVE_TASK_TIMED tasknumber
-	.MACRO 	SAFE_REMOVE_TASK_TIMED
+	; Пример вызова:  SAFE_REMOVE_TIMER tasknumber
+	.MACRO 	SAFE_REMOVE_TIMER
 		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
-		REMOVE_TASK_TIMED	@0
+		REMOVE_TIMER	@0
 		POP	TaskCode
 	.ENDM
 	.endif
 
 
 
-.endif	//RTOS_FEATURE_PLANTASKTIMED
+.endif	//RTOS_FEATURE_PLANTIMER
 
-.ifdef	RTOS_FEATURE_PLANTASKWAITER
+.ifdef	RTOS_FEATURE_PLANWAITER
 ;---------------------------------------------------------------------------
 ; Диспетчеризация Задач по состоянию бита в Управляющем Регистре/Порте или в ячейке SRAM (Флаговая автоматизация: запуск, если бит в байте установлен?  если бит в байте снят?)
 
 
-	; TODO: PLAN_TASK_WAITER, [PLAN_TASK_WAITER_ONBITSET, PLAN_TASK_WAITER_ONBITCLR]
-	; TODO: REMOVE_TASK_WAITER
+
+	; Установить (добавить или обновить) Выжидатель в пуле RTOS_WaitersPool, для условного запуска Задачи
+	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
+	; Пример вызова:  PLAN_WAITER tasknumber,address,bit,state
+	.MACRO	PLAN_WAITER
+		.if @0==$00
+		.ERROR "system <Task_Idle> is forbidden to use!"
+		.endif
+		.if @1<0 || @1>0xFFF
+		.ERROR "'address' parameter must be in [0..0xFFF]!"
+		.endif
+		.if @2<0 || @2>7
+		.ERROR "'bit' parameter must be in [0..7]!"
+		.endif
+		.if @3!=0 && @3!=1
+		.ERROR "'state' parameter must be [0 or 1]!"
+		.endif
+		LDI	TaskCode,		@0	; Заполняем параметры
+		LDI	MethodParameter2,	Low(@1)
+		LDI	MethodParameter3,	(@3<<WAITER_BIT_STATE)|(@2<<WAITER_BIT_POSITION)|(High(@1)<<WAITER_ADDRESS_HIGH)
+		RCALL	RTOS_METHOD_AddWaiter		; Вызываем системный метод
+	.ENDM
 
 
-.endif	//RTOS_FEATURE_PLANTASKWAITER
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+	; Установить (добавить или обновить) Выжидатель в пуле RTOS_WaitersPool, для условного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
+	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
+	; Пример вызова:  SAFE_PLAN_WAITER tasknumber,address,bit,state
+	.MACRO	SAFE_PLAN_WAITER
+		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
+		PUSH	MethodParameter2
+		PUSH	MethodParameter3
+		PLAN_WAITER	@0,@1,@2,@3
+		POP	MethodParameter3
+		POP	MethodParameter2
+		POP	TaskCode
+	.ENDM
+	.endif
+
+
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+	; Убрать (удалить) Выжидатель из пула RTOS_WaitersPool, для отмены условного запуска Задачи
+	; Памятка: под параметры и временные переменные - портит содержимое всех регистров, упомянутых в секции "Subroutine Register Variables", соответствующего системного метода, и в зависимости от текущего режима оптимизации...
+	; Пример вызова:  REMOVE_WAITER tasknumber
+	.MACRO 	REMOVE_WAITER
+		.if @0==$00
+		.ERROR "system <Task_Idle> is forbidden to use!"
+		.endif
+		LDI	TaskCode,	@0		; Заполняем параметры
+		RCALL	RTOS_METHOD_RemoveWaiter	; Вызываем системный метод
+	.ENDM
+	.endif
+
+
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+	; Убрать (удалить) Выжидатель из пула RTOS_WaitersPool, для отмены условного запуска Задачи	(БЕЗОПАСНАЯ ВЕРСИЯ)
+	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
+	; Пример вызова:  SAFE_REMOVE_WAITER tasknumber
+	.MACRO 	SAFE_REMOVE_WAITER
+		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
+		REMOVE_WAITER	@0
+		POP	TaskCode
+	.ENDM
+	.endif
+
+
+
+.endif	//RTOS_FEATURE_PLANWAITER
 
 ;***************************************************************************
 ;*
@@ -200,8 +269,12 @@
 		RCALL	RTOS_METHOD_ClearTaskQueue	; Очистить очередь Задач RTOS
 		.endif
 		
-		.ifdef	RTOS_FEATURE_PLANTASKTIMED
-		RCALL	RTOS_METHOD_ClearTimers		; Очистить список таймеров RTOS
+		.ifdef	RTOS_FEATURE_PLANTIMER
+		RCALL	RTOS_METHOD_ClearTimers		; Очистить список Таймеров RTOS
+		.endif
+
+		.ifdef	RTOS_FEATURE_PLANWAITER
+		RCALL	RTOS_METHOD_ClearWaiters	; Очистить список Выжидателей RTOS
 		.endif
 	.endif
 
@@ -337,7 +410,7 @@
 
 
 
-.if defined(RTOS_FEATURE_PLANTASKTIMED) || defined(RTOS_FEATURE_PLANTASKWAITER)	; (служба таймеров используется только в этих режимах)
+.if defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER)	; (служба таймеров используется только в этих режимах)
 ; Q: Какой аппаратный таймер задействовать для "Службы Таймеров Ядра RTOS" (Main Timer Service)?
 ; 
 ; A1) Чтобы использовать простой Таймер/Счётчик0 и его базовое прерывание "по переполнению" ("Timer/Counter0 Overflow") - включите это определение.
@@ -425,7 +498,7 @@
 	; 	Итого, только для работы RTOS (в режиме со включенной оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY) - в стеке требуется гарантированно оставить 10 байт для RTOS!
 
 	.MACRO	RTOS_TIMER_SERVICE
-	.if defined(RTOS_FEATURE_PLANTASKTIMED) || defined(RTOS_FEATURE_PLANTASKWAITER)	; (служба таймеров используется только в этих режимах)
+	.if defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER)	; (служба таймеров используется только в этих режимах)
 
 		PUSHF								; сохранить temp1 и SREG в стеке
 		PUSH	YL							; cохранить и другие регистры, используемые в данном обработчике...
@@ -434,12 +507,12 @@
 		PUSH	ZH
 
 
-	.ifdef	RTOS_FEATURE_PLANTASKTIMED
+.ifdef	RTOS_FEATURE_PLANTIMER
 
 		;== Обработать Таймеры
 		; см. описание идеи http://easyelectronics.ru/avr-uchebnyj-kurs-operacionnaya-sistema-tajmernaya-sluzhba.html
 
-		LDI	ZL,	Low (RTOS_TimersPool)				; Загрузить адрес начала "пула таймеров" -> в регистр Z
+		LDI	ZL,	Low (RTOS_TimersPool)				; Загрузить адрес начала "пула Таймеров" -> в регистр Z
 		LDI	ZH,	High(RTOS_TimersPool)
 
 	LoopTimer__RTOS_TIMER_SERVICE:
@@ -490,16 +563,79 @@
 		CPI	ZH,	High(RTOS_TimersPool + RTOS_TimersPoolSize*3)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
 		BRNE	LoopTimer__RTOS_TIMER_SERVICE
 
-	.endif	//RTOS_FEATURE_PLANTASKTIMED
+.endif	//RTOS_FEATURE_PLANTIMER
 
 
 
-	.ifdef	RTOS_FEATURE_PLANTASKWAITER
+.ifdef	RTOS_FEATURE_PLANWAITER
 
-		;== Обработать Выжидающих
-		;TODO...
+		;== Обработать Выжидатели
 
-	.endif	//RTOS_FEATURE_PLANTASKWAITER
+		LDI	ZL,	Low (RTOS_WaitersPool)				; Загрузить адрес начала "пула Выжидателей" -> в регистр Z
+		LDI	ZH,	High(RTOS_WaitersPool)
+
+	LoopWaiter__RTOS_TIMER_SERVICE:
+		LD	temp1,	Z						; прочитать "Идентификатор Задачи" очередного выжидателя -> temp1
+
+		CPI	temp1,	$00						; проверка: если "Нет Задачи"?
+		BREQ	SkipWaiter__RTOS_TIMER_SERVICE				; то переход к следующему элементу...
+
+
+		; (состояние: текущий элемент непустой - надо проверить его Условие)
+		LDD	YL,	Z+1						; Устанавливаем "12-битный адрес тестируемой ячейки памяти" -> Y
+		LDD	YH,	Z+2
+		ANDI	YH,	(0b1111<<WAITER_ADDRESS_HIGH)
+		LD	YL,	Y						; Вычитываем "содержимое тестируемого байта" -> YL (во временную переменную)
+
+		LDD	YH,	Z+2
+		BST	YH,	WAITER_BIT_STATE				; "Ожидаемое состояние бита" -> T
+		ANDI	YH,	(0b111<<WAITER_BIT_POSITION)
+		SWAP	YH							; "Номер позиции [0..7] тестируемого бита" -> YH (во временную переменную)
+
+		; Замечу: инструкции INC/DEC не переписывают "Carry Bit" (используемый арифметическими инструкциями)!
+		; Manual: The C flag in SREG is not affected by the operation, thus allowing the INC/DEC instruction to be used on a loop counter in multiple-precision computations.
+		ROL	YL							; (предварительная коррекция)
+		INC	YH
+	ShiftBitForWaiter__RTOS_TIMER_SERVICE:
+		ROR	YL							; сдвинуть вправо (с использованием "Carry Bit")
+		DEC	YH							; переменная цикла (декрементация)
+		BRNE	ShiftBitForWaiter__RTOS_TIMER_SERVICE
+
+		ANDI	YL,	(1<<0)						; "Тестируемый бит" -> в нулевой разряд YL
+		BLD	YH,	0						; "Ожидаемое состояние бита" -> в нулевой разряд YH	(замечу, после цикла, YH=0)
+		EOR	YL,	YH						; Операция "исключающего или" такова: Если биты совпадают, то YL станет нулевым.
+		BRNE 	SkipWaiter__RTOS_TIMER_SERVICE				; не ноль, Условие не сработало...
+
+
+		; (состояние: Условие сработало - запустить связанную Задачу)
+		LDI	YL,	Low (RTOS_TaskQueue)				; Сканируем очередь задач сначала до конца, ищем первую пустую ячейку...
+		LDI	YH,	High(RTOS_TaskQueue)
+	LoopTaskForWaiter__RTOS_TIMER_SERVICE:
+		LD	temp1,	Y+
+		CPI	temp1,	$00						; проверка: ячейка пустая?
+		BREQ	FoundTaskForWaiter__RTOS_TIMER_SERVICE			; если пустая - прерываем сканирование на этой позиции...
+		CPI	YL,	Low (RTOS_TaskQueue + RTOS_TaskQueueSize)	; условие цикла:
+		BRNE	LoopTaskForWaiter__RTOS_TIMER_SERVICE			; 	ПОКА адрес в Y не дойдёт до конца данных...
+		CPI	YH,	High(RTOS_TaskQueue + RTOS_TaskQueueSize)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
+		BRNE	LoopTaskForWaiter__RTOS_TIMER_SERVICE
+		RJMP	ClearWaiter__RTOS_TIMER_SERVICE				; Если достигли конца очереди, но так и не нашли пустой ячейки - игнор...
+	FoundTaskForWaiter__RTOS_TIMER_SERVICE:
+		LD	temp1,	Z						; Если нашли пустое место (фактически, это текущий "хвост" очереди) - то дополняем очередь требуемой Задачей...
+		ST	-Y,	temp1
+	ClearWaiter__RTOS_TIMER_SERVICE:
+		LDI	temp1,	$00
+		ST	Z,	temp1						; Задача обработана - Выжидатель самоудаляется...
+
+
+	SkipWaiter__RTOS_TIMER_SERVICE:
+		SUBI	ZL,	Low (-3)					; Переходим к следующему таймеру:
+		SBCI	ZH,	High(-3)					; 	адрес Z+=3
+		CPI	ZL,	Low (RTOS_WaitersPool + RTOS_WaitersPoolSize*3)	; условие цикла:
+		BRNE	LoopWaiter__RTOS_TIMER_SERVICE				; 	ПОКА адрес в Z не дойдёт до конца данных...
+		CPI	ZH,	High(RTOS_WaitersPool + RTOS_WaitersPoolSize*3)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
+		BRNE	LoopWaiter__RTOS_TIMER_SERVICE
+
+.endif	//RTOS_FEATURE_PLANWAITER
 
 
 		POP	ZH							; восстановить регистры
@@ -522,7 +658,7 @@
 
 
 	.MACRO	SetTimerTask 
-		PLAN_TASK_TIMED	@0,@1
+		PLAN_TIMER	@0,@1
 	.ENDM
 
 

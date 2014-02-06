@@ -1,4 +1,4 @@
-.MESSAGE "<-- RTOS ver.1.9.1 alpha -->"
+.MESSAGE "<-- RTOS ver.1.9.5 alpha -->"
 ;=== BEGIN "RTOS-kernel.inc" ===============================================
 
 ; Ядро RTOS
@@ -75,7 +75,7 @@ RTOS_METHOD_ClearTaskQueue:
 ;.def	TaskCode	= (см.выше)	; (входной, не изменяется)	Номер-индекс Задачи в таблице RTOS_TaskProcs
 
 ; Памятка: в режиме без оптимизации RTOS_OPTIMIZE_FOR_SMALL_MEMORY: кроме параметровых, больше регистров не портит - поскольку защищает используемые регистры Стеком.
-; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена - использует/портит содержимое регистров TEMP1, TEMP2, TEMP3, ZH:ZL.
+; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена (Стек вообще не используется внутри метода!) - портит содержимое регистров TEMP1, TEMP2, TEMP3, ZH:ZL.
 ; Памятка: SREG сохраняется всегда.
 
 ;----- Code
@@ -145,7 +145,7 @@ RTOS_METHOD_AddTask:
 ; Без параметров.
 
 ; Памятка: в режиме без оптимизации RTOS_OPTIMIZE_FOR_SMALL_MEMORY: кроме ZH:ZL (совершенно необходимых для "Indirect Jump" в задачу), больше регистров не портит - поскольку защищает используемые регистры Стеком.
-; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена - использует/портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4 и ZH:ZL.
+; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена (Стек вообще не используется внутри метода!) - портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4 и ZH:ZL.
 ; Примечание: хотя, в данном случае, необязательно сберегать регистры, т.к. данный метод вызывается из суперцикла "MAIN", между запусками прикладных Задач - когда сбережение регистров, обычно, не требуется.
 ; Памятка: SREG сохраняется всегда.
 
@@ -245,7 +245,7 @@ RTOS_METHOD_ProcessTaskQueue:
 
 .endif	//RTOS_FEATURE_PLANTASK
 
-.ifdef	RTOS_FEATURE_PLANTASKTIMED
+.ifdef	RTOS_FEATURE_PLANTIMER
 ;***************************************************************************
 ;*
 ;*  Диспетчеризация Задач по Таймеру
@@ -256,10 +256,10 @@ RTOS_METHOD_ProcessTaskQueue:
 .ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY	; Примечание: данный метод необязательно запускать при инициализации RTOS, если используется RAMFLUSH (macrobaselib.inc) при инициализации микроконтроллера.
 ;---------------------------------------------------------------------------
 ; 
-; Очистить "пул таймеров" RTOS_TimersPool (проинициализировать)
+; Очистить "пул Таймеров" RTOS_TimersPool (проинициализировать)
 ; 
 ; Данный метод следует вызывать только раз, на этапе инициализации МК, когда никакой полезной работы ещё не ведётся.
-; Также, на этапе выполнения, при реализации нестандартного управления, данным методом можно принудительно выключить/очистить все таймеры. (не рекомендуется к использованию!)
+; Также, на этапе выполнения, при реализации нестандартного управления, данным методом можно принудительно выключить/очистить все Таймеры (не рекомендуется к использованию!).
 ;
 ;---------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ RTOS_METHOD_ClearTimers:
 ;.def	TimeDelayHigh	= (см.выше)	; (входной, не изменяется)	Время Задержки, в милисекундах (ст.байт)
 
 ; Памятка: в режиме без оптимизации RTOS_OPTIMIZE_FOR_SMALL_MEMORY: кроме параметровых, больше регистров не портит - поскольку защищает используемые регистры Стеком.
-; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена - использует/портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4, ZH:ZL.
+; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена (Стек вообще не используется внутри метода!) - портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4, ZH:ZL.
 ; Памятка: SREG сохраняется всегда.
 
 ;----- Code
@@ -341,23 +341,23 @@ RTOS_METHOD_AddTimer:
 		CLI						; запрещаем прерывания
 
 		; Цикл: ищем существующий Таймер (для апдейта), а заодно, ищем пустую ячейку (для нового)
-		LDI	ZL,	Low (RTOS_TimersPool)		; Загрузить адрес начала "пула таймеров" -> в регистр Z
+		LDI	ZL,	Low (RTOS_TimersPool)		; Загрузить адрес начала "пула Таймеров" -> в регистр Z
 		LDI	ZH,	High(RTOS_TimersPool)
-		LDI	temp3,	0				; Установить признак "ещё не нашёл" указатель на пустую ячейку в пуле, для нового таймера	(temp3=temp4=0)
+		LDI	temp3,	0				; Установить признак "ещё не нашёл" указатель на пустую ячейку в пуле, для нового Таймера	(temp3=temp4=0)
 		LDI	temp4,	0
 	Loop__RTOS_METHOD_AddTimer:
-		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного таймера
+		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного Таймера
 
 		CP	temp1,	TaskCode			; проверить: совпадает ли с искомой Задачей?
-		BREQ	UpdateExisting__RTOS_METHOD_AddTimer	; если совпадает - идём апдейтить этот таймер...
+		BREQ	UpdateExisting__RTOS_METHOD_AddTimer	; если совпадает - идём апдейтить этот Таймер...
 
 		CPI	temp1,	$00				; проверка: ячейка пустая?
-		BRNE	NotEmpty__RTOS_METHOD_AddTask
+		BRNE	NotEmpty__RTOS_METHOD_AddTimer
 		MOV	temp3,	ZL				; если нашёл пустую ячейку - запоминаем её адрес, на будущее...
 		MOV	temp4,	ZH	
-	NotEmpty__RTOS_METHOD_AddTask:
+	NotEmpty__RTOS_METHOD_AddTimer:
 
-		SUBI	ZL,	Low (-3)			; Переходим к следующему таймеру:
+		SUBI	ZL,	Low (-3)			; Переходим к следующему Таймеру:
 		SBCI	ZH,	High(-3)			; 	адрес Z+=3
 		CPI	ZL,	Low (RTOS_TimersPool + RTOS_TimersPoolSize*3)	; условие цикла:
 		BRNE	Loop__RTOS_METHOD_AddTimer				; 	ПОКА адрес в Z не дойдёт до конца данных...
@@ -368,7 +368,7 @@ RTOS_METHOD_AddTimer:
 		MOV	ZL,	temp3				; переводим указатель Z на последнюю пустую ячейку, найденную ранее	(примечание: получается, что пул будет заполняться с конца, но это не важно)
 		MOV	ZH,	temp4
 		OR	temp3,	temp4				; проверить статус: если "не нашёл" указатель на пустую ячейку в пуле?	(temp3==0 and temp4==0 ?)
-		BRNE	FillNew__RTOS_METHOD_AddTimer		; если таки нашёл - перейти к заполнению нового таймера...
+		BRNE	FillNew__RTOS_METHOD_AddTimer		; если таки нашёл - перейти к заполнению нового Таймера...
 
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 		; Если прошли весь пул, но так и не нашли пустой ячейки - ошибка!
@@ -432,7 +432,7 @@ RTOS_METHOD_RemoveTimer:
 		;=== начало критической секции
 		CLI						; запрещаем прерывания
 	Loop__RTOS_METHOD_RemoveTimer:
-		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного таймера
+		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного Таймера
 		
 		CP	temp1,	TaskCode			; проверить: совпадает ли с искомой Задачей?
 		BRNE	NotFound__RTOS_METHOD_RemoveTimer
@@ -441,11 +441,11 @@ RTOS_METHOD_RemoveTimer:
 		RJMP	End__RTOS_METHOD_RemoveTimer		; и сразу идём на выход, т.к. Таймер с таким идентификатором может быть только один...
 	NotFound__RTOS_METHOD_RemoveTimer:
 
-		SUBI	ZL,	Low(-3)				; Переходим к следующему таймеру:
+		SUBI	ZL,	Low(-3)				; Переходим к следующему Таймеру:
 		SBCI	ZH,	High(-3)			; 	адрес Z+=2
 		DEC	temp2					; 	переменная цикла (декрементация)
 		BRNE	Loop__RTOS_METHOD_RemoveTimer
-		; (состояние: перебрал все таймеры, не нашёл искомого - пофиг, идём на выход...)
+		; (состояние: перебрал все Таймеры, не нашёл искомого - пофиг, идём на выход...)
 	
 	End__RTOS_METHOD_RemoveTimer:
 		POP	ZL
@@ -459,9 +459,9 @@ RTOS_METHOD_RemoveTimer:
 
 .endif	//RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 
-.endif	//RTOS_FEATURE_PLANTASKTIMED
+.endif	//RTOS_FEATURE_PLANTIMER
 
-.ifdef	RTOS_FEATURE_PLANTASKWAITER
+.ifdef	RTOS_FEATURE_PLANWAITER
 ;***************************************************************************
 ;*
 ;*  Флаговая автоматизация
@@ -469,14 +469,213 @@ RTOS_METHOD_RemoveTimer:
 ;***************************************************************************
 
 
-; TODO:
-;RTOS_METHOD_ClearWaiterQueue
-;RTOS_METHOD_AddWaiter
-;RTOS_METHOD_RemoveWaiter
+.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY	; Примечание: данный метод необязательно запускать при инициализации RTOS, если используется RAMFLUSH (macrobaselib.inc) при инициализации микроконтроллера.
+;---------------------------------------------------------------------------
+; 
+; Очистить "пул Выжидателей" RTOS_WaitersPool (проинициализировать)
+; 
+; Данный метод следует вызывать только раз, на этапе инициализации МК, когда никакой полезной работы ещё не ведётся.
+; Также, на этапе выполнения, при реализации нестандартного управления, данным методом можно принудительно выключить/очистить все Выжидатели (не рекомендуется к использованию!).
+;
+;---------------------------------------------------------------------------
+
+;----- Subroutine Register Variables
+
+; Без параметров.
+
+; Памятка: данный метод не портит содержимое РОН - поскольку защищает используемые регистры Стеком.
+; Памятка: SREG сохраняется.
+
+;----- Code
+
+
+RTOS_METHOD_ClearWaiters:
+
+		PUSHF						; сохранить temp1 и SREG в стеке	(замечу: заодно, сохраняется текущее состояние "флага прерываний")
+		PUSH	temp2
+		PUSH	ZH
+		PUSH	ZL
+
+		LDI	ZL,	Low (RTOS_WaitersPool)
+		LDI	ZH,	High(RTOS_WaitersPool)
+		LDI	temp1,	$00				; = спец.код "Нет Задачи"
+		LDI	temp2,	RTOS_WaitersPoolSize		; переменная цикла
+
+		;=== начало критической секции
+		CLI						; запрещаем прерывания
+	Loop__RTOS_METHOD_ClearWaiters:
+		ST	Z+,	temp1				; Event
+		ST	Z+,	temp1				; Counter Lo
+		ST	Z+,	temp1				; Counter Hi
+		DEC	temp2
+		BRNE	Loop__RTOS_METHOD_ClearWaiters
+	
+		POP	ZL
+		POP	ZH
+		POP	temp2
+		POPF						; Restore global interrupt flag
+		;=== конец критической секции
+		RET
 
 
 
-.endif	//RTOS_FEATURE_PLANTASKWAITER
+.endif	//RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+
+;---------------------------------------------------------------------------
+;
+; Установить (добавить или обновить) Выжидатель в пуле RTOS_WaitersPool, 
+; для условного запуска Задачи
+; 
+;---------------------------------------------------------------------------
+
+;----- Subroutine Register Variables
+
+;.def	TaskCode		= (см.выше)	; (входной, не изменяется)	Номер-индекс Задачи в таблице RTOS_TaskProcs
+;.def	WaiterTemplateLow	= (см.выше)	; (входной, не изменяется)	Время Задержки, в милисекундах (мл.байт)
+;.def	WaiterTemplateHigh	= (см.выше)	; (входной, не изменяется)	Время Задержки, в милисекундах (ст.байт)
+
+; Памятка: в режиме без оптимизации RTOS_OPTIMIZE_FOR_SMALL_MEMORY: кроме параметровых, больше регистров не портит - поскольку защищает используемые регистры Стеком.
+; Памятка: в режиме  с оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY: защита стеком отключена (Стек вообще не используется внутри метода!) - портит содержимое регистров TEMP1, TEMP2, TEMP3, TEMP4, ZH:ZL.
+; Памятка: SREG сохраняется всегда.
+
+;----- Code
+
+
+RTOS_METHOD_AddWaiter:
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+		PUSH	temp1
+		PUSH	temp2
+		PUSH	temp3
+		PUSH	temp4
+		PUSH	ZL
+		PUSH	ZH
+	.endif
+
+		;=== начало критической секции			; (примечание: чтений+запись разделяемой памяти - должны быть в единой транзакции!)
+		INR	temp2,	SREG				; Save global interrupt flag
+		CLI						; запрещаем прерывания
+
+		; Цикл: ищем существующий Таймер (для апдейта), а заодно, ищем пустую ячейку (для нового)
+		LDI	ZL,	Low (RTOS_WaitersPool)		; Загрузить адрес начала "пула выжидателей" -> в регистр Z
+		LDI	ZH,	High(RTOS_WaitersPool)
+		LDI	temp3,	0				; Установить признак "ещё не нашёл" указатель на пустую ячейку в пуле, для нового выжидателя	(temp3=temp4=0)
+		LDI	temp4,	0
+	Loop__RTOS_METHOD_AddWaiter:
+		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного выжидателя
+
+		CP	temp1,	TaskCode			; проверить: совпадает ли с искомой Задачей?
+		BREQ	UpdateExisting__RTOS_METHOD_AddWaiter	; если совпадает - идём апдейтить этот выжидатель...
+
+		CPI	temp1,	$00				; проверка: ячейка пустая?
+		BRNE	NotEmpty__RTOS_METHOD_AddWaiter
+		MOV	temp3,	ZL				; если нашёл пустую ячейку - запоминаем её адрес, на будущее...
+		MOV	temp4,	ZH
+	NotEmpty__RTOS_METHOD_AddWaiter:
+
+		SUBI	ZL,	Low (-3)			; Переходим к следующему выжидателю:
+		SBCI	ZH,	High(-3)			; 	адрес Z+=3
+		CPI	ZL,	Low (RTOS_WaitersPool + RTOS_WaitersPoolSize*3)	; условие цикла:
+		BRNE	Loop__RTOS_METHOD_AddWaiter				; 	ПОКА адрес в Z не дойдёт до конца данных...
+		CPI	ZH,	High(RTOS_WaitersPool + RTOS_WaitersPoolSize*3)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
+		BRNE	Loop__RTOS_METHOD_AddWaiter
+
+		; (состояние: существующий Таймер не найден - нужно добавить новый...)
+		MOV	ZL,	temp3				; переводим указатель Z на последнюю пустую ячейку, найденную ранее	(примечание: получается, что пул будет заполняться с конца, но это не важно)
+		MOV	ZH,	temp4
+		OR	temp3,	temp4				; проверить статус: если "не нашёл" указатель на пустую ячейку в пуле?	(temp3==0 and temp4==0 ?)
+		BRNE	FillNew__RTOS_METHOD_AddWaiter		; если таки нашёл - перейти к заполнению нового выжидателя...
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+		; Если прошли весь пул, но так и не нашли пустой ячейки - ошибка!
+		LDI	ErrorCode,	20			; код: 20 - "пул Таймеров" переполнен, не могу зарегистрировать новый Таймер!
+		RCALL	RTOS_METHOD_ErrorHandler
+	.endif
+		RJMP	End__RTOS_METHOD_AddWaiter
+
+		; Запрограммировать Таймер
+	FillNew__RTOS_METHOD_AddWaiter:
+		ST	Z,	TaskCode
+	UpdateExisting__RTOS_METHOD_AddWaiter:
+		STD	Z+1,	WaiterTemplateLow
+		STD	Z+2,	WaiterTemplateHigh
+
+	End__RTOS_METHOD_AddWaiter:
+		OUTR	SREG,	temp2				; Restore global interrupt flag
+		;=== конец критической секции
+
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+		POP	ZH
+		POP	ZL
+		POP	temp4
+		POP	temp3
+		POP	temp2
+		POP	temp1
+	.endif
+		RET
+
+
+
+.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY	; Примечание: данный метод является второстепенным, без него можно обойтись.
+;---------------------------------------------------------------------------
+;
+; Убрать (удалить) Таймер из пула RTOS_WaitersPool, 
+; для отмены отложенного запуска Задачи
+; 
+;---------------------------------------------------------------------------
+
+;----- Subroutine Register Variables
+
+;.def	TaskCode	= (см.выше)	; (входной, не изменяется)	Номер-индекс Задачи в таблице RTOS_TaskProcs
+
+; Памятка: кроме параметровых, больше регистров не портит - поскольку защищает используемые регистры Стеком.
+; Памятка: SREG сохраняется.
+
+;----- Code
+
+
+RTOS_METHOD_RemoveWaiter:
+
+		PUSHF						; сохранить temp1 и SREG в стеке	(замечу: заодно, сохраняется текущее состояние "флага прерываний")
+		PUSH	temp2
+		PUSH	ZH
+		PUSH	ZL
+
+		LDI	ZL,	Low (RTOS_WaitersPool)
+		LDI	ZH,	High(RTOS_WaitersPool)
+		LDI	temp2,	RTOS_WaitersPoolSize		; переменная цикла
+
+		;=== начало критической секции
+		CLI						; запрещаем прерывания
+	Loop__RTOS_METHOD_RemoveWaiter:
+		LD	temp1,	Z				; прочитать "Идентификатор Задачи" очередного выжидателя
+		
+		CP	temp1,	TaskCode			; проверить: совпадает ли с искомой Задачей?
+		BRNE	NotFound__RTOS_METHOD_RemoveWaiter
+		LDI	temp1,	$00				; = спец.код "Нет Задачи"
+		ST	Z,	temp1				; выключаем Таймер
+		RJMP	End__RTOS_METHOD_RemoveWaiter		; и сразу идём на выход, т.к. Таймер с таким идентификатором может быть только один...
+	NotFound__RTOS_METHOD_RemoveWaiter:
+
+		SUBI	ZL,	Low(-3)				; Переходим к следующему Выжидателю:
+		SBCI	ZH,	High(-3)			; 	адрес Z+=2
+		DEC	temp2					; 	переменная цикла (декрементация)
+		BRNE	Loop__RTOS_METHOD_RemoveWaiter
+		; (состояние: перебрал все Выжидатели, не нашёл искомого - пофиг, идём на выход...)
+	
+	End__RTOS_METHOD_RemoveWaiter:
+		POP	ZL
+		POP	ZH
+		POP	temp2
+		POPF						; Restore global interrupt flag
+		;=== конец критической секции
+		RET
+
+
+
+.endif	//RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+
+.endif	//RTOS_FEATURE_PLANWAITER
 
 ;***************************************************************************
 ;*
@@ -508,9 +707,9 @@ RTOS_METHOD_RemoveTimer:
 
 	; Реестр используемых кодов ошибок (возможные значения ErrorCode):
 	; 	 0 - нет ошибки
-	; 	10 - "очередь Задач" переполнена, не могу добавить новую Задачу!
-	; 	20 - "пул Таймеров"   переполнен, не могу зарегистрировать новый Таймер!
-	; 	30 - "пул Выжидающих" переполнен, не могу зарегистрировать нового Выжидающего!
+	; 	10 - "очередь Задач"  переполнена, не могу добавить новую Задачу!
+	; 	20 - "пул Таймеров"    переполнен, не могу зарегистрировать новый Таймер!
+	; 	30 - "пул Выжидателей" переполнен, не могу зарегистрировать новый Выжидатель!
 
 RTOS_METHOD_ErrorHandler:
 		RET

@@ -8,28 +8,46 @@
 ;***************************************************************************
 
 
-	.ifdef	RTOS_FEATURE_PLANTASKTIMED
-			.equ 	RTOS_TimersPoolSize 	= 5	; Длина пула Таймеров [1..255] (максимально возможное число одновременно существующих "отложенных задач" в системе)
+
+	.ifdef	RTOS_FEATURE_PLANTIMER
+
+			.equ 	RTOS_TimersPoolSize 	= 5	; Длина пула Таймеров    [1..85] (максимально возможное число одновременно существующих "отложенных задач" в системе)
 RTOS_TimersPool:	.byte	RTOS_TimersPoolSize*3		; Адрес пула Таймеров
+
+	.if RTOS_TimersPoolSize<1 || RTOS_TimersPoolSize>85
+	.ERROR "RTOS_TimersPoolSize must be in [1..85]!"
+	.endif
 	.endif
 
 
 
-	.ifdef	RTOS_FEATURE_PLANTASKWAITER
-			.equ 	RTOS_WaitersPoolSize 	= 5	; Длина пула Выжидающих [1..255] (максимально возможное число одновременно существующих "отложенных задач" в системе)
-RTOS_WaitersPool:	.byte	RTOS_WaitersPoolSize*3		; Адрес пула Выжидающих
 
-; Формат 3-го байта элемента пула Выжидающих:
+	.ifdef	RTOS_FEATURE_PLANWAITER
+
+			.equ 	RTOS_WaitersPoolSize 	= 5	; Длина пула Выжидателей [1..85] (максимально возможное число одновременно существующих "отложенных задач" в системе)
+RTOS_WaitersPool:	.byte	RTOS_WaitersPoolSize*3		; Адрес пула Выжидателей
+
+; Формат 3-го байта элемента пула Выжидателей:
 .equ	WAITER_BIT_STATE	= 7	; Ожидаемое состояние бита, которое должено быть в тестируемой [байтовой] ячейке памяти, для запуска Задачи на выполнение.
 .equ	WAITER_BIT_POSITION	= 4	; Следующие три бита кодируют номер позиции [0..7] тестируемого бита (в байтовой ячейке).
 .equ	WAITER_ADDRESS_HIGH	= 0	; Следующие четыре бита кодируют ст.байт адреса ячейки.
+
+	.if RTOS_WaitersPoolSize<1 || RTOS_WaitersPoolSize>85
+	.ERROR "RTOS_WaitersPoolSize must be in [1..85]!"
 	.endif
+	.endif
+
 
 
 
 	.ifdef	RTOS_FEATURE_PLANTASK
+
 			.equ 	RTOS_TaskQueueSize 	= 11	; Длина очереди Задач [1..255] (задается с запасом, чтобы не произошло ее переполнения)
 RTOS_TaskQueue:		.byte	RTOS_TaskQueueSize 		; Адрес очереди Задач (примечание: располагать ее лучше после остальных данных, чтобы она тянулась навстречу стеку)
+
+	.if RTOS_TaskQueueSize<1 || RTOS_TaskQueueSize>255
+	.ERROR "RTOS_TaskQueueSize must be in [1..255]!"
+	.endif
 	.endif
 
 
@@ -60,14 +78,14 @@ RTOS_TaskQueue:		.byte	RTOS_TaskQueueSize 		; Адрес очереди Задач (примечание: р
 
 
 
-; Формат элемента пула Выжидающих (RTOS_WaitersPool):
+; Формат элемента пула Выжидателей (RTOS_WaitersPool):
 ; 
 ; 	1 байт		2 байт		3 байт
 ; 	76543210	76543210	76543210
 ; 	nnnnnnnn	aaaaaaaa	BpppAAAA
 ; 
 ; где:
-; 	nnnnnnnn	- Идентификатор Задачи	(где задача==0 означает "нет Выжидающего")
+; 	nnnnnnnn	- Идентификатор Задачи	(где задача==0, означает "нет Выжидателя")
 ; 	B		- Ожидаемое состояние бита, которое должено быть в тестируемой байтовой ячейке, для запуска Задачи на выполнение.
 ; 	ppp		- три бита кодируют номер позиции [0..7] тестируемого бита B в байтовой ячейке.
 ; 	AAAAaaaaaaaa	- 12-битный адрес [0x00..0x0FFF] тестируемой байтовой ячейки ОЗУ (регистра/порта/SRAM), даёт 4Kb диапазон адресации. Где "aaaaaaaa" - мл.байт, "AAAA" - ст.байт адреса.
