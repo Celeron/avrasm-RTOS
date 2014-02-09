@@ -25,7 +25,7 @@
 			RETI
 
 			.ORG	OVF0addr		; Timer/Counter0 Overflow
-		.ifdef	_RTOS_USE_TIMER0_OVERFLOW_
+		.ifdef	RTOS_USE_TIMER0_OVERFLOW
 			RJMP	RTOS_TIMER_HANDLER
 		.else
 			RETI

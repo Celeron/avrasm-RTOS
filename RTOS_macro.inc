@@ -21,11 +21,11 @@
 .EQU	RTOS_FEATURE_PLANTIMER = 1		; поддержка Диспетчеризации Задач по Таймеру	(безусловно отложенный запуск на <X> миллисекунд)
 .EQU	RTOS_FEATURE_PLANWAITER = 1		; поддержка Флаговой автоматизации		(диспетчеризация Задач по состоянию бита в памяти РОН, Управляющем Регистре/Порте, или в ячейке SRAM:  запуск задачи, если/как-только бит в байте установлен?  или если/как-только бит в байте снят?)
 
-;.EQU	RTOS_OPTIMIZE_FOR_SMALL_MEMORY = 1	; используйте это только для самых младших МК!	(отключить в системных методах RTOS защиту регистров стеком, отключить некритичные проверки, выкинуть второстепенные методы из ядра, отключить всё что только можно - чтобы минимизировать объём кода RTOS, и главное, минимизировать используемый/требуемый объём ОЗУ/стека)
+.EQU	RTOS_OPTIMIZE_FOR_SMALL_MEMORY = 1	; используйте это только для самых младших МК!	(отключить в системных методах RTOS защиту регистров стеком, отключить некритичные проверки, выкинуть второстепенные методы из ядра, отключить всё что только можно - чтобы минимизировать объём кода RTOS, и главное, минимизировать используемый/требуемый объём ОЗУ/стека)
 						; Итого, только для работы RTOS (в режиме со включенной оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY) - в стеке требуется гарантированно оставить 10 байт (для RTOS)!
 						; Напомню: Также, требуется выделить SRAM под "очередь Задач", пулы Таймеров и Выжидателей.
 						; Оставшееся ОЗУ - можно использовать для прикладных данных... И если, в прикладном коде, вы используете вызовы Подпрограмм (CALL Subroutine) - обязательно просчитайте достаточную глубину Стека (для адресов возврата, как минимум)!
-						; Например: на МК ATtiny10 (при 32 байтах SRAM), можно использовать RTOS с одним Таймером (-3байта) и одним Флаговым Автоматом (-3байта), и очередь глубиной 4шт. Задачи (-4байта); ещё -10 байт на Стек RTOS; остаётся 12 байт SRAM на прикладную логику (10 на данные + 2 про запас). Profit!
+						; Например: на МК ATtiny10 (при 32 байтах SRAM), можно использовать RTOS с одним Таймером (-3байта) и одним Флаговым Автоматом (-3байта), и очередь глубиной 4шт. Задачи (-4байта); ещё -10 байт на Стек RTOS; остаётся 12 байт SRAM на прикладную логику (10 на данные + 2 про запас). Profit!		/Замечу: при этом, в сегменте кода система будет занимать 350-450 байт - остальное на прикладную логику./
 
 ; Смотри также: константы Настройки Скорости - в макросах инициализации RTOS_INIT, USART_INIT... (их невозможно настроить автоматически, нужно править вручную)
 
@@ -47,14 +47,14 @@
 
 .def	TaskCode		= R25	; Номер-индекс Задачи в таблице RTOS_TaskProcs
 
-.def	MethodParameter2	= R24	; 2-ой байт элемента пула (описание формата см. в RTOS_data.inc)
-.def	MethodParameter3	= R23	; 3-ий байт элемента пула (описание формата см. в RTOS_data.inc)
+.def	PoolParameter2byte	= R24	; 2-ой байт элемента Пула (описание формата см. в RTOS_data.inc)	/используется для настройки Таймера и Флагового Автомата/
+.def	PoolParameter3byte	= R23	; 3-ий байт элемента Пула (описание формата см. в RTOS_data.inc)	/используется для настройки Таймера и Флагового Автомата/
 
-.def	TimeDelayLow		= R24	; Время Задержки, в милисекундах (мл.байт)	/используется для настройки Таймера/
-.def	TimeDelayHigh		= R23	; Время Задержки, в милисекундах (ст.байт)	/используется для настройки Таймера/
+;.def	TimeDelayLow		= R24	; Время Задержки, в милисекундах (мл.байт)	/используется для настройки Таймера/
+;.def	TimeDelayHigh		= R23	; Время Задержки, в милисекундах (ст.байт)	/используется для настройки Таймера/
 
-.def	WaiterTemplateLow	= R24	; 2-ой байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
-.def	WaiterTemplateHigh	= R23	; 3-ий байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
+;.def	WaiterTemplateLow	= R24	; 2-ой байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
+;.def	WaiterTemplateHigh	= R23	; 3-ий байт элемента пула Выжидателей (описание формата см. в RTOS_data.inc)	/используется для настройки Флагового автомата/
 
 .def	ErrorCode		= R24	; Код системной ошибки	/передаётся в RTOS_METHOD_ErrorHandler/
 
@@ -81,8 +81,8 @@
 		.if @0==$00
 		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
-		LDI	TaskCode,	@0		; Заполняем параметры
-		RCALL	RTOS_METHOD_AddTask		; Вызываем системный метод
+		LDI	TaskCode,	@0			; Заполняем параметры
+		RCALL	RTOS_METHOD_AddTask			; Вызываем системный метод
 	.ENDM
 
 
@@ -92,7 +92,7 @@
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
 	; Пример вызова:  SAFE_PLAN_TASK tasknumber
 	.MACRO 	SAFE_PLAN_TASK
-		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
+		PUSH	TaskCode				; Здесь, сберегаем только параметровые регистры!
 		PLAN_TASK	@0
 		POP	TaskCode
 	.ENDM
@@ -118,10 +118,10 @@
 		.if @1==0
 		.ERROR "0ms time delay is forbidden for <RTOS_METHOD_AddTimer> method!"
 		.endif
-		LDI	TaskCode,	@0		; Заполняем параметры
-		LDI	TimeDelayLow,	Low(@1)
-		LDI	TimeDelayHigh,	High(@1)
-		RCALL	RTOS_METHOD_AddTimer		; Вызываем системный метод
+		LDI	TaskCode,		@0		; Заполняем параметры
+		LDI	PoolParameter2byte,	Low(@1)
+		LDI	PoolParameter3byte,	High(@1)
+		RCALL	RTOS_METHOD_AddTimer			; Вызываем системный метод
 	.ENDM
 
 
@@ -131,12 +131,12 @@
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
 	; Пример вызова:  SAFE_PLAN_TIMER tasknumber,delay
 	.MACRO	SAFE_PLAN_TIMER
-		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
-		PUSH	TimeDelayLow
-		PUSH	TimeDelayHigh
+		PUSH	TaskCode				; Здесь, сберегаем только параметровые регистры!
+		PUSH	PoolParameter2byte
+		PUSH	PoolParameter3byte
 		PLAN_TIMER	@0,@1
-		POP	TimeDelayHigh
-		POP	TimeDelayLow
+		POP	PoolParameter3byte
+		POP	PoolParameter2byte
 		POP	TaskCode
 	.ENDM
 	.endif
@@ -151,8 +151,8 @@
 		.if @0==$00
 		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
-		LDI	TaskCode,	@0		; Заполняем параметры
-		RCALL	RTOS_METHOD_RemoveTimer		; Вызываем системный метод
+		LDI	TaskCode,	@0			; Заполняем параметры
+		RCALL	RTOS_METHOD_RemoveTimer			; Вызываем системный метод
 	.ENDM
 	.endif
 
@@ -163,7 +163,7 @@
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
 	; Пример вызова:  SAFE_REMOVE_TIMER tasknumber
 	.MACRO 	SAFE_REMOVE_TIMER
-		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
+		PUSH	TaskCode				; Здесь, сберегаем только параметровые регистры!
 		REMOVE_TIMER	@0
 		POP	TaskCode
 	.ENDM
@@ -195,10 +195,10 @@
 		.if @3!=0 && @3!=1
 		.ERROR "'state' parameter must be [0 or 1]!"
 		.endif
-		LDI	TaskCode,		@0	; Заполняем параметры
-		LDI	MethodParameter2,	Low(@1)
-		LDI	MethodParameter3,	(@3<<WAITER_BIT_STATE)|(@2<<WAITER_BIT_POSITION)|(High(@1)<<WAITER_ADDRESS_HIGH)
-		RCALL	RTOS_METHOD_AddWaiter		; Вызываем системный метод
+		LDI	TaskCode,		@0		; Заполняем параметры
+		LDI	PoolParameter2byte,	Low(@1)
+		LDI	PoolParameter3byte,	(@3<<WAITER_BIT_STATE)|(@2<<WAITER_BIT_POSITION)|(High(@1)<<WAITER_ADDRESS_HIGH)
+		RCALL	RTOS_METHOD_AddWaiter			; Вызываем системный метод
 	.ENDM
 
 
@@ -208,12 +208,12 @@
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
 	; Пример вызова:  SAFE_PLAN_WAITER tasknumber,address,bit,state
 	.MACRO	SAFE_PLAN_WAITER
-		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
-		PUSH	MethodParameter2
-		PUSH	MethodParameter3
+		PUSH	TaskCode				; Здесь, сберегаем только параметровые регистры!
+		PUSH	PoolParameter2byte
+		PUSH	PoolParameter3byte
 		PLAN_WAITER	@0,@1,@2,@3
-		POP	MethodParameter3
-		POP	MethodParameter2
+		POP	PoolParameter3byte
+		POP	PoolParameter2byte
 		POP	TaskCode
 	.ENDM
 	.endif
@@ -228,8 +228,8 @@
 		.if @0==$00
 		.ERROR "system <Task_Idle> is forbidden to use!"
 		.endif
-		LDI	TaskCode,	@0		; Заполняем параметры
-		RCALL	RTOS_METHOD_RemoveWaiter	; Вызываем системный метод
+		LDI	TaskCode,	@0			; Заполняем параметры
+		RCALL	RTOS_METHOD_RemoveWaiter		; Вызываем системный метод
 	.ENDM
 	.endif
 
@@ -240,7 +240,7 @@
 	; Памятка: данный макрос не портит содержимое РОН (даже для передачи параметров) - поскольку защищает используемые регистры Стеком.
 	; Пример вызова:  SAFE_REMOVE_WAITER tasknumber
 	.MACRO 	SAFE_REMOVE_WAITER
-		PUSH	TaskCode			; Здесь, сберегаем только параметровые регистры!
+		PUSH	TaskCode				; Здесь, сберегаем только параметровые регистры!
 		REMOVE_WAITER	@0
 		POP	TaskCode
 	.ENDM
@@ -262,6 +262,7 @@
 	; Памятка: портит содержимое регистра TEMP1.
 
 	.MACRO	RTOS_INIT
+	.if defined(RTOS_FEATURE_PLANTASK)		; (без поддержки "Базовой диспетчеризации задач" все функции RTOS отключены!)
 
 
 	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
@@ -276,7 +277,7 @@
 		.ifdef	RTOS_FEATURE_PLANWAITER
 		RCALL	RTOS_METHOD_ClearWaiters	; Очистить список Выжидателей RTOS
 		.endif
-	.endif
+	.endif	//RTOS_OPTIMIZE_FOR_SMALL_MEMORY
 
 
 		.MESSAGE "Attention: check the main RTOS Timer setting! Are constant set correspond to CPU clock? Choose one free hardware Timer... Are Register bits correct?"
@@ -304,7 +305,7 @@
 		.ENDIF
 
 		; Самопроверка (только для 8-bit таймеров):
-		.IF Low(CTimerDivider)<CTimerDivider
+		.IF CTimerDivider>255
 		.WARNING "CTimerDivider is incorrect (over byte capacity)! Use bigger CTimerPrescaler..."
 		.ENDIF
 
@@ -315,11 +316,11 @@
 		; Т.к. моделей МК очень много, в большинстве несколько таймеров, и у каждого свои регистры/биты настройки, 
 		; кроме того прикладная задача накладывает ещё свои ограничения (некоторые таймеры могут быть заняты), 
 		; то выбор и конфигурация конкретного аппаратного Таймера - обычно, производятся самим программистом, вручную!
-		; Но для облегчения работы, был разработан код автоматического способа, покрывающий большинство случаев: см. режим _RTOS_USE_TIMER0_OVERFLOW_
+		; Но для облегчения работы, был разработан код автоматического способа, покрывающий большинство случаев: см. режим RTOS_USE_TIMER0_OVERFLOW
 
 
-	.ifndef	_RTOS_USE_TIMER0_OVERFLOW_
-	.ifdef	_RTOS_USE_TIMER2_COMPARE_
+	.ifndef	RTOS_USE_TIMER0_OVERFLOW
+	.ifdef	RTOS_USE_TIMER2_COMPARE
 
 		; Замечу, что по "методу предложенному DI HALT'ом", вам требуется Таймер/Счётчик обязательно с "режимом компарации" - чтоб навесить "службу таймеров" на его прерывание "Timer/CounterX Compare Match".
 		; Идея здесь состоит в том, чтобы отсчитывать CTimerDivider тиков таймера и АВТОМАТИЧЕСКИ вызывать прерывание - точно с периодичностью 1ms.
@@ -335,12 +336,12 @@
 		OUTI	TCNT2,	0			; Установить начальное значение счётчика
 		SETB	TIMSK,	OCIE2			; Разрешаем прерывание: Timer/Counter2 Output Compare Match (по достижению регистра сравнения)
 
-	.else	//end of _RTOS_USE_TIMER2_COMPARE_
+	.else	//end of RTOS_USE_TIMER2_COMPARE
 
 		; (*** здесь вы можете вставить свой особый код инициализации таймера ***)
 
 	.endif
-	.else	//begin of _RTOS_USE_TIMER0_OVERFLOW_
+	.else	//begin of RTOS_USE_TIMER0_OVERFLOW
 
 		; Если только получилось значение Делителя CTimerDivider == 256 или 512, кратное ёмкости счётного регистра 
 		; (что случается редко и только при использовании специальных "часовых кварцев") - 
@@ -404,23 +405,24 @@
 		OUTI	TCNT0L,	Low (65536-CTimerDivider)	; преИнициализировать начальное значение счётчика
 	.endif
 
-	.endif	//end of _RTOS_USE_TIMER0_OVERFLOW_
+	.endif	//end of RTOS_USE_TIMER0_OVERFLOW
+	.endif	//RTOS_FEATURE_PLANTASK
 	.ENDM
 
 
 
 
-.if defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER)	; (служба таймеров используется только в этих режимах)
+.if defined(RTOS_FEATURE_PLANTASK) && (defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER))	; (служба таймеров используется только в этих режимах)
 ; Q: Какой аппаратный таймер задействовать для "Службы Таймеров Ядра RTOS" (Main Timer Service)?
 ; 
 ; A1) Чтобы использовать простой Таймер/Счётчик0 и его базовое прерывание "по переполнению" ("Timer/Counter0 Overflow") - включите это определение.
 ; Данный метод рекомендуется использовать, по умолчанию!
 ; Универсален: подходит для большинства задач, использует минимум аппаратных ресурсов, прост в настройке.
 ; Самонастраиваемый: здесь, вам достаточно только установить Константы режимов, а управляющие регистры будут сконфигурированы автоматически (подходит для большинства МК AVR).
-.EQU	_RTOS_USE_TIMER0_OVERFLOW_ = 1
+.EQU	RTOS_USE_TIMER0_OVERFLOW = 1
 
 ; A2) Если вы хотите использовать 8-битный Timer/Counter2 с "режимом компарации" - включите это определение.
-;.EQU	_RTOS_USE_TIMER2_COMPARE_ = 1
+;.EQU	RTOS_USE_TIMER2_COMPARE = 1
 
 ; A3) Если же вы хотите использовать свой иной метод - то просто закомментируйте оба верхних определения, 
 ; и пропишите свой код в соответствующую секцию "else", между директивами условной компиляции, выше...
@@ -440,9 +442,13 @@
 ;
 ; Например:
 ; 	при CPU clock=8MHz,  prescaler=64  -> divider=125tic    ~ 1ms, где 1tic=0,008ms  -> погрешность = 0
-; 	при CPU clock=20MHz, prescaler=128 -> divider=156,25tic ~ 1ms, где 1tic=0,0064ms -> погрешность относительная=0.25/156=0,0016 или абсолютная=128*0.25=32clk ~1ms (т.е. быстрее на 0,0016сек за 1сек)
-; 	при CPU clock=1MHz,  prescaler=32  -> divider=31,25tic  ~ 1ms, где 1tic=0,032ms  -> погрешность относительная=0.25/31=0,008 (т.е. уходит быстрее на 0,008сек в течение 1сек)
+; 	при CPU clock=20MHz, prescaler=128 -> divider=156,25tic ~ 1ms, где 1tic=0,0064ms -> погрешность относительная=0.25/156=0,0016 или абсолютная=128*0.25=32clk, т.е. 16us за 1ms	(т.е. уходит быстрее на 0,0016сек за 1сек)
+; 	при CPU clock=1MHz,  prescaler=32  -> divider=31,25tic  ~ 1ms, где 1tic=0,032ms  -> погрешность относительная=0.25/31=0,008 							(т.е. уходит быстрее на 0,008сек  за 1сек)
 ; 	при CPU clock=1MHz,  prescaler=8   -> divider=125tic    ~ 1ms, где 1tic=0,008ms  -> погрешность = 0
+;
+; Рекомендация:
+; 	Как видите, например, при divider=31,25tic - погрешность 0.25 уже на два порядка меньше всего числа 31.0...
+; 	Следовательно, при дробном divider, просто не допускайте значения divider<10, а лучше пусть будет divider>100. Тогда погрешность от дробной части будет минимальной...
 
 
 
@@ -498,7 +504,7 @@
 	; 	Итого, только для работы RTOS (в режиме со включенной оптимизацией RTOS_OPTIMIZE_FOR_SMALL_MEMORY) - в стеке требуется гарантированно оставить 10 байт для RTOS!
 
 	.MACRO	RTOS_TIMER_SERVICE
-	.if defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER)	; (служба таймеров используется только в этих режимах)
+	.if defined(RTOS_FEATURE_PLANTASK) && (defined(RTOS_FEATURE_PLANTIMER) || defined(RTOS_FEATURE_PLANWAITER))	; (служба таймеров используется только в этих режимах)
 
 		PUSHF								; сохранить temp1 и SREG в стеке
 		PUSH	YL							; cохранить и другие регистры, используемые в данном обработчике...
@@ -643,7 +649,7 @@
 		POP	YH
 		POP	YL
 		POPF
-	.endif
+	.endif	//RTOS_FEATURE_PLANTASK
 	.ENDM
 
 

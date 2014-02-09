@@ -1,6 +1,6 @@
 .IFNDEF	_MACROBASELIB__INCLUDED_
 .EQU	_MACROBASELIB__INCLUDED_ = 1
-.MESSAGE "Note: <macrobaselib.inc> (ver.1.0.1 beta) have included, only once!" 
+.MESSAGE "Note: <macrobaselib.inc> (ver.1.0.2 beta) have included, only once!" 
 ;=== BEGIN "macrobaselib.inc" ==============================================
 
 ; Библиотека базовых Макроопределений, 
@@ -53,13 +53,23 @@
 
 ; Инициализация Стека
 	.MACRO	STACKINIT
-		LDI	temp,	Low(RAMEND)	; Инициализация стека
-		OUT	SPL,	temp		; Обязательно!!!
+	.if	RAMEND>0x0000			; Только для МК имеющих SRAM...
 
-	.ifdef	SPH
-		LDI	temp,	High(RAMEND)
+		LDI	temp,	Low(RAMEND)	; адрес вершины стека = конец памяти (мл.байт)
+		.ifdef	SPL
+		OUT	SPL,	temp
+		.else
+		OUT	SP,	temp
+		.endif
+
+		.ifdef	SPH
+		LDI	temp,	High(RAMEND)	; адрес вершины стека = конец памяти (ст.байт)
 		OUT	SPH,	temp
-	.endif
+		.endif
+
+	.else
+	.WARNING "This device have not SRAM. Can not initialize Stack!"
+	.endif	//RAMEND
 	.ENDM
 
 
