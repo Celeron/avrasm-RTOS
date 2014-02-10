@@ -55,7 +55,8 @@ avrasm-RTOS
 Курс от DI HALT (лучшее): 
 	http://easyelectronics.ru/tag/rtos 
 
-Заметка об этом дистрибутиве... 
+Заметка об этом дистрибутиве:
+	http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html 
 
 Статьи в Блоге Сообщества: 
 	http://we.easyelectronics.ru/blog/os-rtos/ 
