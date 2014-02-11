@@ -546,7 +546,19 @@
 		BRNE	LoopTaskForTimer__RTOS_TIMER_SERVICE			; 	ПОКА адрес в Y не дойдёт до конца данных...
 		CPI	YH,	High(RTOS_TaskQueue + RTOS_TaskQueueSize)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
 		BRNE	LoopTaskForTimer__RTOS_TIMER_SERVICE
-		RJMP	ClearTimer__RTOS_TIMER_SERVICE				; Если достигли конца очереди, но так и не нашли пустой ячейки - игнор...
+
+		; (состояние: прошли всю очередь, но так и не нашли пустой ячейки - ошибка!)
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+		PUSH	ErrorCode
+		PUSH	TaskCode
+		LDI	ErrorCode,	10					; код ошибки: 10 - "очередь Задач" переполнена, не могу добавить новую Задачу!
+		LD	TaskCode,	Z					; Номер-индекс Задачи, которую не смог добавить
+		RCALL	RTOS_METHOD_ErrorHandler
+		POP	TaskCode
+		POP	ErrorCode
+	.endif
+		RJMP	ClearTimer__RTOS_TIMER_SERVICE
+
 	FoundTaskForTimer__RTOS_TIMER_SERVICE:
 		LD	temp1,	Z						; Если нашли пустое место (фактически, это текущий "хвост" очереди) - то дополняем очередь требуемой Задачей...
 		ST	-Y,	temp1
@@ -618,7 +630,19 @@
 		BRNE	LoopTaskForWaiter__RTOS_TIMER_SERVICE			; 	ПОКА адрес в Y не дойдёт до конца данных...
 		CPI	YH,	High(RTOS_TaskQueue + RTOS_TaskQueueSize)	; (трюк: замечу, здесь не используется традиционная переменная-счётчик, чтобы сэкономить регистр)
 		BRNE	LoopTaskForWaiter__RTOS_TIMER_SERVICE
-		RJMP	ClearWaiter__RTOS_TIMER_SERVICE				; Если достигли конца очереди, но так и не нашли пустой ячейки - игнор...
+
+		; (состояние: прошли всю очередь, но так и не нашли пустой ячейки - ошибка!)
+	.ifndef	RTOS_OPTIMIZE_FOR_SMALL_MEMORY
+		PUSH	ErrorCode
+		PUSH	TaskCode
+		LDI	ErrorCode,	10					; код ошибки: 10 - "очередь Задач" переполнена, не могу добавить новую Задачу!
+		LD	TaskCode,	Z					; Номер-индекс Задачи, которую не смог добавить
+		RCALL	RTOS_METHOD_ErrorHandler
+		POP	TaskCode
+		POP	ErrorCode
+	.endif
+		RJMP	ClearWaiter__RTOS_TIMER_SERVICE
+
 	FoundTaskForWaiter__RTOS_TIMER_SERVICE:
 		LD	temp1,	Z						; Если нашли пустое место (фактически, это текущий "хвост" очереди) - то дополняем очередь требуемой Задачей...
 		ST	-Y,	temp1
