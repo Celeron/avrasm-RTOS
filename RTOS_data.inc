@@ -6,11 +6,11 @@
 ;*  Оперативная память SRAM (сегмент ОЗУ), для RTOS
 ;*
 ;***************************************************************************
+.ifdef	RTOS_FEATURE_PLANTASK
 
 
 
 	.ifdef	RTOS_FEATURE_PLANTIMER
-
 			.equ 	RTOS_TimersPoolSize 	= 5	; Длина пула Таймеров    [1..85] (максимально возможное число одновременно существующих "отложенных задач" в системе)
 RTOS_TimersPool:	.byte	RTOS_TimersPoolSize*3		; Адрес пула Таймеров
 
@@ -23,7 +23,6 @@ RTOS_TimersPool:	.byte	RTOS_TimersPoolSize*3		; Адрес пула Таймеров
 
 
 	.ifdef	RTOS_FEATURE_PLANWAITER
-
 			.equ 	RTOS_WaitersPoolSize 	= 5	; Длина пула Выжидателей [1..85] (максимально возможное число одновременно существующих "отложенных задач" в системе)
 RTOS_WaitersPool:	.byte	RTOS_WaitersPoolSize*3		; Адрес пула Выжидателей
 
@@ -40,18 +39,16 @@ RTOS_WaitersPool:	.byte	RTOS_WaitersPoolSize*3		; Адрес пула Выжидателей
 
 
 
-	.ifdef	RTOS_FEATURE_PLANTASK
-
 			.equ 	RTOS_TaskQueueSize 	= 11	; Длина очереди Задач [1..255] (задается с запасом, чтобы не произошло ее переполнения)
 RTOS_TaskQueue:		.byte	RTOS_TaskQueueSize 		; Адрес очереди Задач (примечание: располагать ее лучше после остальных данных, чтобы она тянулась навстречу стеку)
 
 	.if RTOS_TaskQueueSize<1 || RTOS_TaskQueueSize>255
 	.ERROR "RTOS_TaskQueueSize must be in [1..255]!"
 	.endif
-	.endif
 
 
 
+.endif	//RTOS_FEATURE_PLANTASK	(Базовая диспетчеризация задач, строго необходима для работы всех функций RTOS)
 ;---------------------------------------------------------------------------
 
 ; КРАТКАЯ СПРАВКА:
@@ -103,7 +100,8 @@ RTOS_TaskQueue:		.byte	RTOS_TaskQueueSize 		; Адрес очереди Задач (примечание: р
 
 
 ; Формат элемента очереди Задач (RTOS_TaskQueue):
-; 	просто вектор из байтов, Номеров-индексов Задач...
+; 	Просто вектор из байтов, Номеров-индексов Задач.
+; 	Пустой "хвост очереди" забивается нулями (кодом $00).
 
 
 
