@@ -1,4 +1,4 @@
-.MESSAGE "<-- RTOS ver.2.0 alpha -->"
+.MESSAGE "<-- RTOS ver.2.0.1 alpha -->"
 ;=== BEGIN "RTOS-kernel.inc" ===============================================
 
 ; ядро RTOS
