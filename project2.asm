@@ -1,6 +1,10 @@
 
 	.NOLIST				; Disable listfile generation.
+	;.include "tn10def.inc"		; Используем HAL Микроконтроллера "ATtiny10"
 	.include "tn2313def.inc"	; Используем HAL Микроконтроллера "ATtiny2313"
+	;.include "m8def.inc"		; Используем HAL Микроконтроллера "ATmega8"
+	;.include "m16def.inc"		; Используем HAL Микроконтроллера "ATmega16"
+	;.include "m2560def.inc" 	; Используем HAL Микроконтроллера "ATmega2560"
 	.include "macrobaselib.inc"	; Библиотека базовых Макроопределений.
 	.include "macroapp.inc"		; Прикладные Макроопределения, используемые при реализации логики приложения.
 	.include "RTOS_macro.inc"	; Макросы, реализующие прикладной интерфейс RTOS
@@ -22,7 +26,11 @@
 
 		.ORG	0x0000		; (RESET) 
 		RJMP	RESET
-		.include "ivectors.inc"	; Таблица векторов на обработчики прерываний
+		;.include "ivectors_tiny10.inc"		; Таблица векторов на обработчики прерываний для "ATtiny10"
+		.include "ivectors_tiny2313.inc"	; Таблица векторов на обработчики прерываний для "ATtiny2313"
+		;.include "ivectors_mega8.inc"		; Таблица векторов на обработчики прерываний для "ATmega8"
+		;.include "ivectors_mega16.inc"		; Таблица векторов на обработчики прерываний для "ATmega16"
+		;.include "ivectors_mega2560.inc"	; Таблица векторов на обработчики прерываний для "ATmega2560"
 
 
 ;***** BEGIN Interrupt handlers section ************************************

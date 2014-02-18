@@ -11,17 +11,13 @@
 
 
 ; ***** INTERRUPT VECTORS ************************************************
-; Используем HAL Микроконтроллера "ATtiny2313"
+; Используем HAL Микроконтроллера "ATtiny10"
 
 			.ORG	INT0addr		; External Interrupt Request 0
 			RETI
-			.ORG	INT1addr		; External Interrupt Request 1
-			RETI	
-			.ORG	ICP1addr		; Timer/Counter1 Capture Event
+			.ORG	PCI0addr		; Pin Change Interrupt Request 0
 			RETI
-			.ORG	OC1Aaddr		; Timer/Counter1 Compare Match A
-			RETI
-			.ORG	OVF1addr		; Timer/Counter1 Overflow
+			.ORG	ICP0addr		; Timer/Counter0 Input Capture
 			RETI
 
 			.ORG	OVF0addr		; Timer/Counter0 Overflow
@@ -31,30 +27,19 @@
 			RETI
 		.endif
 
-			.ORG	URXCaddr		; USART, Rx Complete
+			.ORG	OC0Aaddr		; Timer/Counter Compare Match A
 			RETI
-			.ORG	UDREaddr		; USART Data Register Empty
-			RETI
-			.ORG	UTXCaddr		; USART, Tx Complete
+			.ORG	OC0Baddr		; Timer/Counter Compare Match B
 			RETI
 			.ORG	ACIaddr			; Analog Comparator
 			RETI
-			.ORG	PCIaddr			; 
+			.ORG	WDTaddr			; Watchdog Time-out
 			RETI
-			.ORG	OC1Baddr		; 
+			.ORG	VLMaddr			; Vcc Voltage Level Monitor
 			RETI
-			.ORG	OC0Aaddr		; 
+			.ORG	ADCCaddr		; ADC Conversion Complete
 			RETI
-			.ORG	OC0Baddr		; 
-			RETI
-			.ORG	USI_STARTaddr		; USI Start Condition
-			RETI
-			.ORG	USI_OVFaddr		; USI Overflow
-			RETI
-			.ORG	ERDYaddr		; 
-			RETI
-			.ORG	WDTaddr			; Watchdog Timer Overflow
-			RETI
+
 
 			.ORG	INT_VECTORS_SIZE	; Конец таблицы прерываний
 
