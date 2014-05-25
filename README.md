@@ -33,9 +33,8 @@ avrasm-RTOS
 
 Данная реализация "RTOS" написана на языке ассемблера "AVRASM2". 
 Соответственно, она предназначена для разработки программных прошивок (firmware) на языке ассемблер, для микроконтроллеров Atmel AVR (8-bit). 
-Описание:		http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html
-Пример использования:	http://we.easyelectronics.ru/AVR/avrasm-primer-ispolzovaniya-dispetchera-zadach-rtos-20-ustanovka-i-nastroyka.html
-Код скачать:		https://github.com/Celeron/avrasm-RTOS
+Описание:	см. ниже в секции "Документация"...
+Код скачать:	https://github.com/Celeron/avrasm-RTOS
 
 
 Обратите также внимание, что код RTOS поставляется в комплекте с "Шаблоном нового проекта" - интегрировано, для мгновенного старта разработки программной прошивки (firmware) в среде "AVR Studio 4"... 
@@ -53,11 +52,15 @@ avrasm-RTOS
 
 **ДОКУМЕНТАЦИЯ:**
 
-Курс от DI HALT (лучшее): 
+Описание этого дистрибутива:
+	http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html
+Пример использования:
+	http://we.easyelectronics.ru/AVR/avrasm-primer-ispolzovaniya-dispetchera-zadach-rtos-20-ustanovka-i-nastroyka.html
+
+
+Курс от DI HALT про "Диспетчер задач RTOS" (лучшее): 
 	http://easyelectronics.ru/tag/rtos 
 
-Заметка об этом дистрибутиве:
-	http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html 
 
 Статьи в Блоге Сообщества: 
 	http://we.easyelectronics.ru/blog/os-rtos/ 
