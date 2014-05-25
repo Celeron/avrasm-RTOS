@@ -33,8 +33,9 @@ avrasm-RTOS
 
 Данная реализация "RTOS" написана на языке ассемблера "AVRASM2". 
 Соответственно, она предназначена для разработки программных прошивок (firmware) на языке ассемблер, для микроконтроллеров Atmel AVR (8-bit). 
-Описание:	...
-Код скачать:	https://github.com/Celeron/avrasm-RTOS
+Описание:		http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html
+Пример использования:	http://we.easyelectronics.ru/AVR/avrasm-primer-ispolzovaniya-dispetchera-zadach-rtos-20-ustanovka-i-nastroyka.html
+Код скачать:		https://github.com/Celeron/avrasm-RTOS
 
 
 Обратите также внимание, что код RTOS поставляется в комплекте с "Шаблоном нового проекта" - интегрировано, для мгновенного старта разработки программной прошивки (firmware) в среде "AVR Studio 4"... 
