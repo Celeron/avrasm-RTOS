@@ -1,6 +1,6 @@
 .IFNDEF	_MACROBASELIB__INCLUDED_
 .EQU	_MACROBASELIB__INCLUDED_ = 1
-.MESSAGE "Note: <macrobaselib.inc> (ver.1.0.2 beta) have included, only once!" 
+.MESSAGE "Note: <macrobaselib.inc> (ver.1.0.3 beta) have included, only once!" 
 ;=== BEGIN "macrobaselib.inc" ==============================================
 
 ; Библиотека базовых Макроопределений, 
@@ -309,13 +309,13 @@
 		SBI	@0,	@1
 	.elif	@0 < 0x40		; High IO
 		PUSH	R17
-		IN	R17,	@1
+		IN	R17,	@0
 		ORI	R17,	1<<@1
 		OUT	@0,	R17
 		POP	R17
 	.else				; Memory
 		PUSH	R17
-		LDS	R17,	@1
+		LDS	R17,	@0
 		ORI	R17,	1<<@1
 		STS	@0,	R17
 		POP	R17
@@ -330,13 +330,13 @@
 		CBI	@0,	@1
 	.elif	@0 < 0x40		; High IO
 		PUSH	R17
-		IN	R17,	@1
+		IN	R17,	@0
 		ANDI	R17,	~(1<<@1)
 		OUT	@0,	R17
 		POP	R17
 	.else				; Memory
 		PUSH	R17
-		LDS	R17,	@1
+		LDS	R17,	@0
 		ANDI	R17,	~(1<<@1)
 		STS	@0,	R17
 		POP	R17

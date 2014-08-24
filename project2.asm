@@ -1,6 +1,7 @@
 
 	.NOLIST				; Disable listfile generation.
 	;.include "tn10def.inc"		; Используем HAL Микроконтроллера "ATtiny10"
+	;.include "tn13Adef.inc" 	; Используем HAL Микроконтроллера "ATtiny13A"
 	.include "tn2313def.inc"	; Используем HAL Микроконтроллера "ATtiny2313"
 	;.include "m8def.inc"		; Используем HAL Микроконтроллера "ATmega8"
 	;.include "m16def.inc"		; Используем HAL Микроконтроллера "ATmega16"
@@ -27,6 +28,7 @@
 		.ORG	0x0000		; (RESET) 
 		RJMP	RESET
 		;.include "ivectors_tiny10.inc"		; Таблица векторов на обработчики прерываний для "ATtiny10"
+		;.include "ivectors_tiny13.inc"		; Таблица векторов на обработчики прерываний для "ATtiny13(A)"
 		.include "ivectors_tiny2313.inc"	; Таблица векторов на обработчики прерываний для "ATtiny2313"
 		;.include "ivectors_mega8.inc"		; Таблица векторов на обработчики прерываний для "ATmega8"
 		;.include "ivectors_mega16.inc"		; Таблица векторов на обработчики прерываний для "ATmega16"
