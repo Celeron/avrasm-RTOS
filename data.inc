@@ -143,4 +143,4 @@
 
 
 ;=== END "data.inc" ========================================================
-; coded by (c) Celeron, 2014 @ http://we.easyelectronics.ru/my/Celeron/
+; coded by (c) Celeron, 2014  http://inventproject.info/

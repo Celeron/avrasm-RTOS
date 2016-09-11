@@ -667,6 +667,6 @@
 
 
 ;=== END "RTOS-macro.inc" ==================================================
-; coded by (c) DI HALT, 2008 @ http://easyelectronics.ru/
-; coded by (c) Celeron, 2014 @ http://we.easyelectronics.ru/my/Celeron/
+; coded by (c) DI HALT, 2008  http://easyelectronics.ru/
+; coded by (c) Celeron, 2014  http://inventproject.info/
 .ENDIF

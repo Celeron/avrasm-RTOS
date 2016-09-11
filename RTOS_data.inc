@@ -116,4 +116,4 @@ RTOS_TaskQueue:		.byte	RTOS_TaskQueueSize 		; Адрес очереди Задач (примечание: р
 
 
 ;=== END "RTOS-data.inc" ===================================================
-; coded by (c) Celeron, 2014 @ http://we.easyelectronics.ru/my/Celeron/
+; coded by (c) Celeron, 2014  http://inventproject.info/

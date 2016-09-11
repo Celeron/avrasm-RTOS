@@ -4,9 +4,10 @@ avrasm-RTOS
 -------------------------
 
 
-"Диспетчер задач RTOS" - это псевдо кооперативная ОС, 
-созданная и поддерживаемая "Сообществом EasyElectronics.ru" 
-(с) http://we.EasyElectronics.ru/
+"Диспетчер задач RTOS" - это псевдо кооперативная ОС, созданная ["Сообществом EasyElectronics.ru"] (<http://we.EasyElectronics.ru/>)
+
+Автор релиза "RTOS 2.0" - [Celeron] (<http://inventproject.info/>). 
+Подробнее об авторах - см. файл "AUTHORS" в дистрибутиве...
 
 
 В дистрибутиве присутствует также: 
@@ -44,7 +45,7 @@ avrasm-RTOS
 
 
 После рефакторинга Celeron, в коде RTOS используется, и требует подключения, нестандартная внешняя "Библиотека базовых Макроопределений (macrobaselib.inc)" - расширяющая стандартный набор ассемблерных инструкций микроконтроллеров Atmel AVR (8-bit AVR Instruction Set)... 
-Описание:	http://we.easyelectronics.ru/AVR/avrasm-biblioteka-bazovyh-makroopredeleniy-macrobaselibinc.html 
+Описание:	http://inventproject.info/blog/avrasm-biblioteka-bazovyh-makroopredelenij-macrobaselib-inc/
 Код скачать:	https://github.com/Celeron/avrasm-macrobaselib 
 
 
@@ -53,9 +54,10 @@ avrasm-RTOS
 **ДОКУМЕНТАЦИЯ:**
 
 Описание этого дистрибутива:
-	http://we.easyelectronics.ru/AVR/avrasm-dispetcher-zadach-rtos-20-psevdo-kooperativnaya-os.html
+	http://inventproject.info/blog/avrasm-dispetcher-zadach-rtos-2-0-psevdo-kooperativnaya-os/
+
 Пример использования:
-	http://we.easyelectronics.ru/AVR/avrasm-primer-ispolzovaniya-dispetchera-zadach-rtos-20-ustanovka-i-nastroyka.html
+	http://inventproject.info/blog/avrasm-primer-ispolzovaniya-dispetchera-zadach-rtos-2-0-ustanovka-i-nastrojka/
 
 
 Курс от DI HALT про "Диспетчер задач RTOS" (лучшее): 

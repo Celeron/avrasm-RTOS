@@ -345,5 +345,5 @@ RTOS_TaskProcs:
 
 
 ;***** END "RTOS Tasks" section
-; coded by (c) DI HALT, 2008 @ http://easyelectronics.ru/
-; coded by (c) Celeron, 2014 @ http://we.easyelectronics.ru/my/Celeron/
+; coded by (c) DI HALT, 2008  http://easyelectronics.ru/
+; coded by (c) Celeron, 2014  http://inventproject.info/
